@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { RealtimeSession } from '@openai/agents/realtime';
 import { CallState, Message } from './types';
 import { playBeepSound } from './utils/audio';
-import { createRealtimeAgent, disconnectRealtimeAgent } from './services/openai-agent';
+import { createRealtimeAgent } from './services/openai-agent';
 import { CallControls, CallStatus, MessageList } from './components';
 
 
@@ -12,7 +12,7 @@ function App() {
   const [isListening, setIsListening] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const beepTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,6 +44,14 @@ function App() {
       if (callTimerRef.current) clearInterval(callTimerRef.current);
       if (beepTimerRef.current) clearTimeout(beepTimerRef.current);
       if (recognitionRef.current) recognitionRef.current.stop();
+      if (realtimeSessionRef.current) {
+        try {
+          realtimeSessionRef.current.interrupt();
+        } catch (error) {
+          console.error('Error interrupting realtime agent during cleanup:', error);
+        }
+        realtimeSessionRef.current = null;
+      }
     };
   }, []);
 
@@ -64,11 +72,11 @@ function App() {
     };
   }, [callState]);
 
-  
+
   const startCall = () => {
     setCallState('calling');
     setMessages([]);
-    
+
     // Play beeping sounds
     const playBeeps = () => {
       playBeepSound();
@@ -101,6 +109,17 @@ function App() {
     speechSynthesis.cancel();
     setIsListening(false);
 
+    // Interrupt realtime agent session
+    if (realtimeSessionRef.current) {
+      try {
+        realtimeSessionRef.current.off
+        console.log('Realtime agent session interrupted');
+      } catch (error) {
+        console.error('Error interrupting realtime agent:', error);
+      }
+      realtimeSessionRef.current = null;
+    }
+
     setTimeout(() => {
       setCallState('idle');
       setMessages([]);
@@ -127,7 +146,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
-        
+
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex items-center justify-between">

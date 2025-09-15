@@ -13,6 +13,7 @@ export const createRealtimeAgent = async (): Promise<RealtimeSession | null> => 
       name: 'Assistant',
       instructions: 'You are a helpful assistant, and you only speak in Hebrew',
     });
+    
 
     const session = new RealtimeSession(agent);
     try {
@@ -22,6 +23,7 @@ export const createRealtimeAgent = async (): Promise<RealtimeSession | null> => 
         apiKey: apiKey,
       });
       console.log('You are connected!');
+      return session;
   } catch (e) {
     console.error(e);
     return null;
@@ -30,14 +32,5 @@ export const createRealtimeAgent = async (): Promise<RealtimeSession | null> => 
   } catch (error) {
     console.error('Failed to connect to OpenAI agent:', error);
     return null;
-  }
-};
-
-export const disconnectRealtimeAgent = (session: RealtimeSession): void => {
-  try {
-    session.disconnect();
-    console.log('Realtime agent session disconnected successfully');
-  } catch (error) {
-    console.error('Error disconnecting realtime agent session:', error);
   }
 };

@@ -73,7 +73,7 @@ function App() {
   }, [callState]);
 
 
-  const startCall = () => {
+  const startCall = async () => {
     setCallState('calling');
     setMessages([]);
 
@@ -84,22 +84,20 @@ function App() {
     };
     playBeeps();
 
-    // Agent picks up after 3-4 beeps
-    setTimeout(() => {
+    // Start agent connection immediately
+    const session = await createRealtimeAgent();
+    if (session) {
+      realtimeSessionRef.current = session;
+      console.log('Agent session established successfully');
+
+      // Stop beeps and set to connected when agent is ready
       if (beepTimerRef.current) clearTimeout(beepTimerRef.current);
       setCallState('connected');
-
-      // Start agent connection
-      setTimeout(async () => {
-        const session = await createRealtimeAgent();
-        if (session) {
-          realtimeSessionRef.current = session;
-          console.log('Agent session established successfully');
-        } else {
-          console.error('Failed to establish agent session');
-        }
-      }, 2000);
-    }, 3500);
+    } else {
+      console.error('Failed to establish agent session');
+      if (beepTimerRef.current) clearTimeout(beepTimerRef.current);
+      setCallState('idle');
+    }
   };
 
   const endCall = () => {
@@ -113,6 +111,7 @@ function App() {
     if (realtimeSessionRef.current) {
       try {
         realtimeSessionRef.current.off
+        realtimeSessionRef.current.close()
         console.log('Realtime agent session interrupted');
       } catch (error) {
         console.error('Error interrupting realtime agent:', error);
@@ -151,8 +150,7 @@ function App() {
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold">Voice Agent</h1>
-              <p className="text-blue-100 text-sm">AI Assistant Call</p>
+              <h1 className="text-xl font-bold">Sam the Pharmacist</h1>
             </div>
           </div>
         </div>
